@@ -9,13 +9,13 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class EmployeeDetailsGUI extends JFrame {
-    
+
     static double sssContribution;
     static double philhealthContribution;
     static double pagIbigContribution;
     static double employeeTax;
 
-    private JTextArea textArea;
+    private JTextPane textPane;
     private JTextField employeeNumberField;
 
     public EmployeeDetailsGUI() {
@@ -23,31 +23,32 @@ public class EmployeeDetailsGUI extends JFrame {
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        
+
         // Create UI elements
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
 
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new FlowLayout());
-        
+
         JLabel employeeNumberLabel = new JLabel("Enter employee number:");
         employeeNumberField = new JTextField(10);
         JButton displayButton = new JButton("Display Employee Details");
         JButton calculateButton = new JButton("Calculate Salary");
-        
+
         topPanel.add(employeeNumberLabel);
         topPanel.add(employeeNumberField);
         topPanel.add(displayButton);
         topPanel.add(calculateButton);
-        
-        textArea = new JTextArea();
-        textArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        
+
+        textPane = new JTextPane();
+        textPane.setContentType("text/html");
+        textPane.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textPane);
+
         panel.add(topPanel, BorderLayout.NORTH);
         panel.add(scrollPane, BorderLayout.CENTER);
-        
+
         add(panel);
 
         // Add action listeners
@@ -56,7 +57,7 @@ public class EmployeeDetailsGUI extends JFrame {
                 displayEmployeeDetails();
             }
         });
-        
+
         calculateButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 calculateSalary();
@@ -76,7 +77,7 @@ public class EmployeeDetailsGUI extends JFrame {
         String csvFilePath = "src/csvfiles/salarycalc.csv";
         int targetLine = Integer.parseInt(employeeNumberField.getText());
         int lineNumber = -1;
-        textArea.setText("");
+        textPane.setText("");
 
         try (BufferedReader reader = new BufferedReader(new FileReader(csvFilePath))) {
             String line;
@@ -84,10 +85,24 @@ public class EmployeeDetailsGUI extends JFrame {
                 lineNumber++;
                 if (lineNumber == targetLine) {
                     String[] parts = line.split(",");
-                    textArea.append(String.format("Employee ID: %s\nFirst Name: %s\nLast Name: %s\n", parts[0], parts[2], parts[1]));
-                    textArea.append(String.format("Basic Salary: %s\nGross Semi-monthly Rate: %s\nHourly Rate: %s\n", parts[10], parts[11], parts[12]));
-                    textArea.append(String.format("SSS#: %s\nPhilhealth#: %s\nTIN#: %s\nPagIbig#: %s\n", parts[3], parts[4], parts[5], parts[6]));
-                    textArea.append(String.format("Rice Subsidy: %s\nPhone Allowance: %s\nClothing Allowance: %s\n", parts[7], parts[8], parts[9]));
+                    StringBuilder html = new StringBuilder();
+                    html.append("<html>");
+                    html.append("<h2>Employee Details</h2>");
+                    html.append("<table border='1'>");
+                    html.append("<tr><td>Employee ID:</td><td>").append(parts[0]).append("</td></tr>");
+                    html.append("<tr><td>First Name:</td><td>").append(parts[2]).append("</td></tr>");
+                    html.append("<tr><td>Last Name:</td><td>").append(parts[1]).append("</td></tr>");
+                    html.append("<tr><td>Basic Salary:</td><td>").append(parts[10]).append("</td></tr>");
+                    html.append("<tr><td>Gross Semi-monthly Rate:</td><td>").append(parts[11]).append("</td></tr>");
+                    html.append("<tr><td>Hourly Rate:</td><td>").append(parts[12]).append("</td></tr>");
+                    html.append("<tr><td>SSS#:</td><td>").append(parts[3]).append("</td></tr>");
+                    html.append("<tr><td>Philhealth#:</td><td>").append(parts[4]).append("</td></tr>");
+                    html.append("<tr><td>TIN#:</td><td>").append(parts[5]).append("</td></tr>");
+                    html.append("<tr><td>PagIbig#:</td><td>").append(parts[6]).append("</td></tr>");
+                    html.append("<tr><td>Rice Subsidy:</td><td>").append(parts[7]).append("</td></tr>");
+                    html.append("<tr><td>Phone Allowance:</td><td>").append(parts[8]).append("</td></tr>");
+                    html.append("<tr><td>Clothing Allowance:</td><td>").append(parts[9]).append("</td></tr>");
+                    html.append("</table>");
 
                     double basicSalary = Double.parseDouble(parts[10].replace(" ", ""));
                     double grossRate = Double.parseDouble(parts[11].replace(" ", ""));
@@ -98,7 +113,6 @@ public class EmployeeDetailsGUI extends JFrame {
                     double clothingAllowance = Double.parseDouble(parts[9]);
 
                     double totalAllowances = riceSubsidy + phoneAllowance + clothingAllowance;
-                    textArea.append("Total Allowances: " + totalAllowances + "\n");
 
                     calculateSSSContribution(basicSalary);
                     calculatePhilHealthContribution(basicSalary);
@@ -106,18 +120,23 @@ public class EmployeeDetailsGUI extends JFrame {
                     calculateEmployeeTax(grossRate);
 
                     double grossDeduction = sssContribution + philhealthContribution + pagIbigContribution + employeeTax;
-                    textArea.append("Gross Deduction: " + grossDeduction + "\n");
 
-                    textArea.append("SSS Contribution: " + sssContribution + "\n");
-                    textArea.append("PhilHealth Contribution: " + philhealthContribution + "\n");
-                    textArea.append("Pag-IBIG Contribution: " + pagIbigContribution + "\n");
-                    textArea.append("Employee Tax: " + employeeTax + "\n");
+                    html.append("<h2>Salary Calculation</h2>");
+                    html.append("<table border='1'>");
+                    html.append("<tr><td>Total Allowances:</td><td>").append(totalAllowances).append("</td></tr>");
+                    html.append("<tr><td>SSS Contribution:</td><td>").append(sssContribution).append("</td></tr>");
+                    html.append("<tr><td>PhilHealth Contribution:</td><td>").append(philhealthContribution).append("</td></tr>");
+                    html.append("<tr><td>Pag-IBIG Contribution:</td><td>").append(pagIbigContribution).append("</td></tr>");
+                    html.append("<tr><td>Employee Tax:</td><td>").append(employeeTax).append("</td></tr>");
+                    html.append("<tr><td>Gross Deduction:</td><td>").append(grossDeduction).append("</td></tr>");
+                    html.append("<tr><td>Gross Income:</td><td>").append(String.format("%,.2f", grossRate)).append("</td></tr>");
+                    html.append("<tr><td>Benefits:</td><td>").append(String.format("%,.2f", totalAllowances)).append("</td></tr>");
+                    html.append("<tr><td>Total Deductions:</td><td>").append(String.format("%,.2f", grossDeduction)).append("</td></tr>");
+                    html.append("<tr><td>TAKE HOME PAY:</td><td>").append(String.format("%,.2f", (grossRate + totalAllowances - grossDeduction))).append("</td></tr>");
+                    html.append("</table>");
+                    html.append("</html>");
 
-                    textArea.append(String.format("Gross Income: \t\t%,.2f\n", grossRate));
-                    textArea.append(String.format("Benefits: \t\t%,.2f\n", totalAllowances));
-                    textArea.append(String.format("Total Deductions: \t%,.2f\n", grossDeduction));
-                    textArea.append(String.format("TAKE HOME PAY: \t\t%,.2f\n", (grossRate + totalAllowances - grossDeduction)));
-
+                    textPane.setText(html.toString());
                     break;
                 }
             }
@@ -130,7 +149,7 @@ public class EmployeeDetailsGUI extends JFrame {
         String csvFilePath = "src/csvfiles/Employeedetails.csv";
         int targetLine = Integer.parseInt(employeeNumberField.getText());
         int lineNumber = -1;
-        textArea.setText("");
+        textPane.setText("");
 
         try (BufferedReader reader = new BufferedReader(new FileReader(csvFilePath))) {
             String line;
@@ -138,9 +157,23 @@ public class EmployeeDetailsGUI extends JFrame {
                 lineNumber++;
                 if (lineNumber == targetLine) {
                     String[] parts = line.split(",");
-                    textArea.append(String.format("Employee ID: %s\nFirst Name: %s\nLast Name: %s\n", parts[0], parts[2], parts[1]));
-                    textArea.append(String.format("Birthday: %s\nAddress: %s\nPhone Number: %s\n", parts[3], parts[4], parts[5]));
-                    textArea.append(String.format("Status: %s\nPosition: %s\nImmediate Supervisor: %s\n", parts[10], parts[11], parts[12]));
+                    StringBuilder html = new StringBuilder();
+                    html.append("<html>");
+                    html.append("<h2>Employee Details</h2>");
+                    html.append("<table border='1'>");
+                    html.append("<tr><td>Employee ID:</td><td>").append(parts[0]).append("</td></tr>");
+                    html.append("<tr><td>First Name:</td><td>").append(parts[2]).append("</td></tr>");
+                    html.append("<tr><td>Last Name:</td><td>").append(parts[1]).append("</td></tr>");
+                    html.append("<tr><td>Birthday:</td><td>").append(parts[3]).append("</td></tr>");
+                    html.append("<tr><td>Address:</td><td>").append(parts[4]).append("</td></tr>");
+                    html.append("<tr><td>Phone Number:</td><td>").append(parts[5]).append("</td></tr>");
+                    html.append("<tr><td>Status:</td><td>").append(parts[10]).append("</td></tr>");
+                    html.append("<tr><td>Position:</td><td>").append(parts[11]).append("</td></tr>");
+                    html.append("<tr><td>Immediate Supervisor:</td><td>").append(parts[12]).append("</td></tr>");
+                    html.append("</table>");
+                    html.append("</html>");
+
+                    textPane.setText(html.toString());
                     break;
                 }
             }
@@ -265,8 +298,8 @@ public class EmployeeDetailsGUI extends JFrame {
             pagIbigContribution = 0.0;
         }
     }
-
-    static void calculateEmployeeTax(double grossRate) {
+   
+        static void calculateEmployeeTax(double grossRate) {
        double totalDeductions = sssContribution + philhealthContribution + pagIbigContribution;
 
         double taxableIncome = grossRate - totalDeductions;
